@@ -23,14 +23,14 @@ contract ContractTest is DSTest {
     function testMint() public {
         address mintTo = address(1);
         vm.warp(5);
-        valenftines.mint(mintTo, 1, 2, 3);
+        valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
         assertEq(valenftines.ownerOf(1), mintTo);
     }
 
     function testMintValentineInfo() public {
         address mintTo = address(1);
         vm.warp(5);
-        valenftines.mint(mintTo, 1, 2, 3);
+        valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
 
         (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
         assertEq(from, address(this));
@@ -44,7 +44,7 @@ contract ContractTest is DSTest {
     function testRequitedTransfer() public {
         address mintTo = address(1);
         vm.warp(5);
-        valenftines.mint(mintTo, 1, 2, 3);
+        valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
 
         vm.prank(mintTo);
         valenftines.transferFrom(mintTo, address(this), 1);
@@ -67,7 +67,7 @@ contract ContractTest is DSTest {
     function testNonRequitedTransfer() public {
         address mintTo = address(1);
         vm.warp(5);
-        valenftines.mint(mintTo, 1, 2, 3);
+        valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
 
         vm.prank(mintTo);
         valenftines.transferFrom(mintTo, address(2), 1);
@@ -83,12 +83,12 @@ contract ContractTest is DSTest {
 
     function testTokenURI() public {
         vm.warp(5);
-        valenftines.mint(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, 1, 2, 3);
+        valenftines.mint{value: 3e16}(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, 1, 2, 3);
         // emit log_string(valenftines.tokenURI(1));
 
         vm.prank(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1);
         valenftines.transferFrom(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, address(this), 1);
-        emit log_string(valenftines.tokenURI(1));
+        // emit log_string(valenftines.tokenURI(1));
         // emit log_string(string(valenftines.svgImage(1)));
     }
 }

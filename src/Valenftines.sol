@@ -8,7 +8,10 @@ import {Base64} from "base64/base64.sol";
 
 import {HexStrings} from "src/libraries/HexStrings.sol";
 
-
+/// Reverts
+/// 1 - value less than mint fee
+/// 2 - mint started yet 
+/// 3 - mint ended
 contract Valenftines is ERC721, Ownable {
     struct Valentine {
         uint8 h1;
@@ -69,8 +72,10 @@ contract Valenftines is ERC721, Ownable {
         mintEndTimestamp = _mintEndTimestamp;
     }
 
+    // Mint
+
     function mint(address to, uint8 h1, uint8 h2, uint8 h3) payable external returns(uint256 id) {
-        require(mintCost[h1] + mintCost[h2] + mintCost[h3] <= msg.value, '1');
+        require(heartMintCostWei(h1) + heartMintCostWei(h2) + heartMintCostWei(h3) <= msg.value, '1');
         require(block.timestamp > mintStartTimestamp, '2');
         require(block.timestamp < mintEndTimestamp, '3');
         
@@ -83,6 +88,14 @@ contract Valenftines is ERC721, Ownable {
         v.h3 = h3;
         _safeMint(to, id);
     }
+
+    function heartMintCostWei(uint8 heartType) public pure returns(uint256) {
+        return (heartType < 11 ? 1e16 : 
+            (heartType < 18 ? 2e16 : 
+                (heartType < 23 ? 1e17 : 1e18)));
+    }
+
+    /// Transfer
 
     function transferFrom(
         address from,
@@ -136,17 +149,17 @@ contract Valenftines is ERC721, Ownable {
         uint256 copy = copyOf[tokenId];
         uint24 requitedId = valentineInfo[tokenId].requitedTokenId;
         return requitedId == 0 ?
+                '' : 
                 string(
                     abi.encodePacked(
-                    ' (',
-                    (copy == 0 ? 
-                        Strings.toString(copy) 
-                        : Strings.toString(requitedId)
-                    ), 
-                    ')'
+                        ' (requited love from #',
+                        copy == 0 ? 
+                            Strings.toString(requitedId)
+                            : Strings.toString(copy) 
+                        , 
+                        ')'
                     )
-                ) 
-                : '';
+                );
     }
 
     function tokenAttributes(uint256 tokenId) public view returns(string memory) {
@@ -154,13 +167,13 @@ contract Valenftines is ERC721, Ownable {
         return string(
             abi.encodePacked(
                 '{',
-                '"trait_type": "love",', 
+                '"trait_type": "Love",', 
                 '"value":"',
-                valentineInfo[tokenId].requitedTokenId == 0 ? 'unrequited' : 'requited',
+                valentineInfo[tokenId].requitedTokenId == 0 ? 'UNREQUITED' : 'REQUITED',
                 '"}',
                 valentineInfo[tokenId].requitedTokenId == 0 ? '' :
                 ', {',
-                '"trait_type": "speed",', 
+                '"trait_type": "Speed",', 
                 '"value":"',
                 isFast(v.to, v.from) ? 'fast' : 'slow',
                 '"}',
@@ -176,6 +189,7 @@ contract Valenftines is ERC721, Ownable {
     /// TOKEN ART 
 
     function svgImage(uint256 tokenId) public view returns (bytes memory){
+        Valentine memory v = valentineInfo[tokenId];
         return abi.encodePacked(
             '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="400" height="400" class="container" ',
 	            'viewBox="0 0 400 400" style="enable-background:new 0 0 400 400;" xml:space="preserve">',
@@ -199,7 +213,9 @@ contract Valenftines is ERC721, Ownable {
                 '<g id="heart">',
                     '<path d="M79.2-43C71.2-78.4,30.8-84.9,5-60.9c-2.5,2.3-6.4,2.1-8.8-0.3c-25-25.9-75.1-15-76.7,28.2C-82.6,22.3-14,75.2,1.5,75.1C17.3,75.1,91.3,10.7,79.2-43z"/>',
                 '</g>',
-                '<radialGradient id="rainbow" cx="58%" cy="50%" fr="0%" r="300%" spreadMethod="repeat">',
+                '<radialGradient id="rainbow" cx="58%" cy="50%" fr="0%" r="',
+                isSmall(v.to, v.from) ? '50' : '300',
+                '%" spreadMethod="repeat">',
                 '<stop offset="0%" style="stop-color:#ffb9b9" />',
                 '<stop offset="30%" style="stop-color:#fff7ad" />',
                 '<stop offset="50%" style="stop-color:#97fff3" />',
@@ -212,15 +228,23 @@ contract Valenftines is ERC721, Ownable {
 
             '<animate xlink:href="#rainbow" ',
                 'attributeName="fr" ',
-                'dur="20s" ',
-                'values="0%;300%" ',
+                'dur="',
+                isFast(v.to, v.from) ? '6' : '20',
+                's" ',
+                'values="0%;',
+                isSmall(v.to, v.from) ? '50' : '300',
+                '%" ',
                 'repeatCount="indefinite"',
             '/>',
 
             '<animate xlink:href="#rainbow" ',
                 'attributeName="r" ',
-                'dur="20s" ',
-                'values="300%;600%" ',
+                'dur="',
+                isFast(v.to, v.from) ? '6' : '20',
+                's" ',
+                'values="',
+                isSmall(v.to, v.from) ? '50%;100%' : '300%;600%',
+                '" ',
                 'repeatCount="indefinite"',
             '/>',
            
@@ -329,6 +353,7 @@ contract Valenftines is ERC721, Ownable {
     }
 
     function isFast(address addr1, address addr2) private pure returns(bool){
+        // flip addresses so possible but rare to be fast and small 
         return numberFromAddresses(addr2, addr1, 100) < 21;
     }
 
@@ -354,8 +379,8 @@ contract Valenftines is ERC721, Ownable {
         return oneLineText("WAGMI");
     }
     
-    function bullishYou() private pure returns(bytes memory){
-        return twoLineText("BULLISH", "YOU");
+    function bullishForYou() private pure returns(bytes memory){
+        return twoLineText("BULLISH", "4YOU");
     }
 
     function beMine() private pure returns(bytes memory){
