@@ -2,7 +2,6 @@
 pragma solidity 0.8.10;
 
 import {ERC721} from "solmate/tokens/ERC721.sol";
-import {MerkleProof} from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Strings} from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import {Base64} from "base64/base64.sol";
@@ -23,7 +22,6 @@ contract Valenftines is ERC721, Ownable {
     uint256 earlymintStartTimestamp; 
     uint256 mintStartTimestamp;
     uint256 mintEndTimestamp;
-    bytes32 merkleRoot;
     mapping(uint256 => Valentine) public valentineInfo;
     mapping(uint256 => uint256) public copyOf;
     mapping(uint8 => uint8) public mintCost;
@@ -62,15 +60,13 @@ contract Valenftines is ERC721, Ownable {
     constructor(
         uint256 _earlymintStartTimestamp, 
         uint256 _mintStartTimestamp, 
-        uint256 _mintEndTimestamp,
-        bytes32 _merkleRoot
+        uint256 _mintEndTimestamp
     ) 
         ERC721("Valenftines", "GTAP3")
     {
         earlymintStartTimestamp = _earlymintStartTimestamp;
         mintStartTimestamp = _mintStartTimestamp;
         mintEndTimestamp = _mintEndTimestamp;
-        merkleRoot = _merkleRoot;
     }
 
     function mint(address to, uint8 h1, uint8 h2, uint8 h3) payable external returns(uint256 id) {

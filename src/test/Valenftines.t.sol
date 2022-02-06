@@ -11,14 +11,12 @@ contract ContractTest is DSTest {
     uint256 earlymintStartTimestamp = 2; 
     uint256 mintStartTimestamp = 4;
     uint256 mintEndTimestamp = 6;
-    bytes32 merkleRoot = 'test'; 
 
     function setUp() public {
         valenftines = new Valenftines(
             earlymintStartTimestamp,
             mintStartTimestamp,
-            mintEndTimestamp,
-            merkleRoot
+            mintEndTimestamp
         );
     }
 
