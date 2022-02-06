@@ -289,7 +289,7 @@ contract Valenftines is ERC721, Ownable {
 
     function heartMessageTspans(uint8 heartType) private pure returns(bytes memory){
         return (heartType < 2 ? gm() :
-                    (heartType < 3 ? toTheMoon() : bullishYou()));
+                    (heartType < 3 ? toTheMoon() : bestFren()));
     }
 
     function emptyHeart(bool first, uint256 tokenId, bool requited, address account) private view returns (bytes memory) {
@@ -436,7 +436,7 @@ contract Valenftines is ERC721, Ownable {
 
     function oneLineText(string memory text) private pure returns(bytes memory){
         return abi.encodePacked(
-            '<tspan x="10" y="-10">',
+            '<tspan x="0" y="-10">',
             text,
             '</tspan>'
         );
@@ -444,7 +444,7 @@ contract Valenftines is ERC721, Ownable {
 
     function twoLineText(string memory line1, string memory line2) private pure returns(bytes memory){
         return abi.encodePacked(
-            '<tspan x="10" y="-15">',
+            '<tspan x="0" y="-15">',
             line1,
             '</tspan>',
             '<tspan x="0" y="20">',
@@ -455,10 +455,10 @@ contract Valenftines is ERC721, Ownable {
 
     function threeLineText(string memory line1, string memory line2, string memory line3) private pure returns(bytes memory){
         return abi.encodePacked(
-            '<tspan x="10" y="-25">',
+            '<tspan x="0" y="-25">',
             line1,
             '</tspan>',
-            '<tspan x="10" y="10">',
+            '<tspan x="0" y="10">',
             line2,
             '</tspan>',
             '<tspan x="0" y="45">',
