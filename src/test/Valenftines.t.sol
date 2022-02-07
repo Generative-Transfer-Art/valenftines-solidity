@@ -59,8 +59,8 @@ contract ContractTest is DSTest {
         assertEq(h3, 3);
         // check copy
         assertEq(valenftines.ownerOf(2), mintTo);
-        assertEq(valenftines.copyOf(2), 1);
-        assertEq(valenftines.copyOf(1), 0);
+        assertEq(valenftines.matchOf(2), 1);
+        assertEq(valenftines.matchOf(1), 0);
 
     }
 
