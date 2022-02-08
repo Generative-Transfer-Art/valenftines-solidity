@@ -28,12 +28,16 @@ contract Valenftines is ERC721, Ownable {
     uint256 mintStartTimestamp;
     uint256 mintEndTimestamp;
     bytes32 public immutable merkleRoot;
-    mapping(uint256 => Valentine) public valentineInfo;
+    mapping(uint256 => Valentine) public _valentineInfo;
     mapping(uint256 => uint256) public matchOf;
     mapping(uint8 => uint8) public mintCost;
     mapping(address => bool) public gtapEarlyMintClaimed;
 
     uint24 private _nonce;
+
+    function valentineInfo(uint256 tokenId) view public returns(Valentine memory){
+        return _valentineInfo[tokenId];
+    }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
         return ValenftinesDescriptors.tokenURI(id, address(this));
@@ -61,7 +65,7 @@ contract Valenftines is ERC721, Ownable {
         require(block.timestamp < mintEndTimestamp, '3');
         
         id = ++_nonce;
-        Valentine storage v = valentineInfo[id];
+        Valentine storage v = _valentineInfo[id];
         v.from = msg.sender;
         v.to = to;
         v.h1 = h1;
@@ -81,7 +85,7 @@ contract Valenftines is ERC721, Ownable {
         gtapEarlyMintClaimed[msg.sender] = true;
         
         id = ++_nonce;
-        Valentine storage v = valentineInfo[id];
+        Valentine storage v = _valentineInfo[id];
         v.from = msg.sender;
         v.to = to;
         v.h1 = h1;
@@ -131,7 +135,7 @@ contract Valenftines is ERC721, Ownable {
         address to,
         uint256 id
     ) private {
-        Valentine storage v = valentineInfo[id];
+        Valentine storage v = _valentineInfo[id];
         if (v.requitedTokenId == 0 && matchOf[id] == 0){
             if(to == v.from){
                 _mint(from, ++_nonce);

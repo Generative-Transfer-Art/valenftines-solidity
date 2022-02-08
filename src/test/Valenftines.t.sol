@@ -52,13 +52,13 @@ contract ContractTest is DSTest {
         vm.warp(5);
         valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
 
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
-        assertEq(from, address(this));
-        assertEq(to, mintTo);
-        assertEq(requitedTokenId, 0);
-        assertEq(h1, 1);
-        assertEq(h2, 2);
-        assertEq(h3, 3);
+        Valentine memory v = valenftines.valentineInfo(1);
+        assertEq(v.from, address(this));
+        assertEq(v.to, mintTo);
+        assertEq(v.requitedTokenId, 0);
+        assertEq(v.h1, 1);
+        assertEq(v.h2, 2);
+        assertEq(v.h3, 3);
     }
 
     function testGtapMint() public {
@@ -68,13 +68,13 @@ contract ContractTest is DSTest {
         valenftines.gtapMint{value: 15e15}(mintTo, 1, 2, 3, proofArray);
         assertEq(valenftines.ownerOf(1), mintTo);
 
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
-        assertEq(from, gtapHolder);
-        assertEq(to, mintTo);
-        assertEq(requitedTokenId, 0);
-        assertEq(h1, 1);
-        assertEq(h2, 2);
-        assertEq(h3, 3);
+        Valentine memory v = valenftines.valentineInfo(1);
+        assertEq(v.from, gtapHolder);
+        assertEq(v.to, mintTo);
+        assertEq(v.requitedTokenId, 0);
+        assertEq(v.h1, 1);
+        assertEq(v.h2, 2);
+        assertEq(v.h3, 3);
     }
 
     function testGtapFailSecondMint() public {
@@ -109,13 +109,13 @@ contract ContractTest is DSTest {
         valenftines.transferFrom(mintTo, address(this), 1);
         assertEq(valenftines.ownerOf(1), address(this));
 
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
-        assertEq(from, address(this));
-        assertEq(to, mintTo);
-        assertEq(requitedTokenId, 2);
-        assertEq(h1, 1);
-        assertEq(h2, 2);
-        assertEq(h3, 3);
+        Valentine memory v = valenftines.valentineInfo(1);
+        assertEq(v.from, address(this));
+        assertEq(v.to, mintTo);
+        assertEq(v.requitedTokenId, 2);
+        assertEq(v.h1, 1);
+        assertEq(v.h2, 2);
+        assertEq(v.h3, 3);
         // check copy
         assertEq(valenftines.ownerOf(2), mintTo);
         assertEq(valenftines.matchOf(2), 1);
@@ -131,13 +131,13 @@ contract ContractTest is DSTest {
         vm.prank(mintTo);
         valenftines.transferFrom(mintTo, address(2), 1);
 
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
-        assertEq(from, mintTo);
-        assertEq(to, address(2));
-        assertEq(requitedTokenId, 0);
-        assertEq(h1, 1);
-        assertEq(h2, 2);
-        assertEq(h3, 3);
+        Valentine memory v = valenftines.valentineInfo(1);
+        assertEq(v.from, mintTo);
+        assertEq(v.to, address(2));
+        assertEq(v.requitedTokenId, 0);
+        assertEq(v.h1, 1);
+        assertEq(v.h2, 2);
+        assertEq(v.h3, 3);
     }
 
     function testTokenURI() public {
@@ -148,6 +148,7 @@ contract ContractTest is DSTest {
         vm.prank(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1);
         valenftines.transferFrom(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, address(this), 1);
         emit log_string(valenftines.tokenURI(1));
+        emit log_string(valenftines.tokenURI(2));
         // emit log_string(string(valenftines.svgImage(1)));
     }
 }

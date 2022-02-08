@@ -10,7 +10,7 @@ import {Valenftines, Valentine} from 'src/Valenftines.sol';
 
 library ValenftinesDescriptors {
     function tokenURI(uint256 id, address valenftines) public view returns (string memory) {
-        (, , , uint24 requitedTokenId, address to, address from) = Valenftines(valenftines).valentineInfo(id);
+        Valentine memory v = Valenftines(valenftines).valentineInfo(id);
         uint256 copy = Valenftines(valenftines).matchOf(id);
         return string(
                 abi.encodePacked(
@@ -21,15 +21,15 @@ library ValenftinesDescriptors {
                                     '{"name":"'
                                     '#',
                                     Strings.toString(id),
-                                    _tokenName(id, requitedTokenId, valenftines),
+                                    _tokenName(id, v.requitedTokenId, valenftines),
                                     '", "description":"',
                                     'Valenftines are on-chain art for friends and lovers. They display the address of the sender and recipient along with messages picked by the minter. When the Valenftine is transferred back to the most recent sender, love is REQUITED and the NFT transforms and clones itself so both parties have a copy.',
                                     '", "attributes": [',
-                                    tokenAttributes(id, requitedTokenId, to, from),
+                                    tokenAttributes(id, v.requitedTokenId, v.to, v.from),
                                     ']',
                                     ', "image": "'
                                     'data:image/svg+xml;base64,',
-                                    Base64.encode(copy > 0 ? svgImage(copy, valenftines) : svgImage(id, valenftines)),
+                                    Base64.encode(copy > 0 ? svgImage(copy, Valenftines(valenftines).valentineInfo(copy)) : svgImage(id, v)),
                                     '"}'
                                 )
                             )
@@ -61,19 +61,7 @@ library ValenftinesDescriptors {
                 '"trait_type": "Love",', 
                 '"value":"',
                 requitedTokenId == 0 ? 'UNREQUITED' : 'REQUITED',
-                '"}',
-                requitedTokenId == 0 ? '' : string(abi.encodePacked(
-                    ', {',
-                    '"trait_type": "Speed",', 
-                    '"value":"',
-                    isFast(to, from) ? 'fast' : 'slow',
-                    '"}',
-                    ', {',
-                    '"trait_type": "bloom",', 
-                    '"value":"',
-                    isSmall(to, from) ? 'small' : 'large',
-                    '"}'
-                ))
+                '"}'
             )
         );
     }
@@ -82,11 +70,10 @@ library ValenftinesDescriptors {
 
     function svgImage(
         uint256 tokenId, 
-        address valenftines
+        Valentine memory v
     ) 
         public view returns (bytes memory)
     {
-        (, , , uint24 requitedTokenId, address to, address from) = Valenftines(valenftines).valentineInfo(tokenId);
         return abi.encodePacked(
             '<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="400" height="400" class="container" ',
 	            'viewBox="0 0 400 400" style="enable-background:new 0 0 400 400;" xml:space="preserve">',
@@ -95,9 +82,7 @@ library ValenftinesDescriptors {
                 '<g id="heart">',
                     '<path d="M79.2-43C71.2-78.4,30.8-84.9,5-60.9c-2.5,2.3-6.4,2.1-8.8-0.3c-25-25.9-75.1-15-76.7,28.2C-82.6,22.3-14,75.2,1.5,75.1C17.3,75.1,91.3,10.7,79.2-43z"/>',
                 '</g>',
-                '<radialGradient id="rainbow" cx="58%" cy="50%" fr="0%" r="',
-                isSmall(to, from) ? '50' : '300',
-                '%" spreadMethod="repeat">',
+                '<radialGradient id="rainbow" cx="58%" cy="49%" fr="0%" r="70%" spreadMethod="repeat">',
                 '<stop offset="0%" style="stop-color:#ffb9b9" />',
                 '<stop offset="30%" style="stop-color:#fff7ad" />',
                 '<stop offset="50%" style="stop-color:#97fff3" />',
@@ -107,32 +92,24 @@ library ValenftinesDescriptors {
             '</defs>',
 
             '<rect ',
-            requitedTokenId != 0 ? 'fill="url(#rainbow)"' : 'class="background"',
+            v.requitedTokenId != 0 ? 'fill="url(#rainbow)"' : 'class="background"',
             ' width="400" height="400"/>',
 
             '<animate xlink:href="#rainbow" ',
                 'attributeName="fr" ',
-                'dur="',
-                isFast(to, from) ? '6' : '20',
-                's" ',
-                'values="0%;',
-                isSmall(to, from) ? '50' : '300',
-                '%" ',
+                'dur="16s" ',
+                'values="0%;25%;0%" ',
                 'repeatCount="indefinite"',
             '/>',
 
             '<animate xlink:href="#rainbow" ',
                 'attributeName="r" ',
-                'dur="',
-                isFast(to, from) ? '6' : '20',
-                's" ',
-                'values="',
-                isSmall(to, from) ? '50%;100%' : '300%;600%',
-                '" ',
+                'dur="16s" ',
+                'values="70%;180%;70%" ',
                 'repeatCount="indefinite"',
             '/>',
            
-            heartsSVGs(tokenId, valenftines),
+            heartsSVGs(tokenId, v),
             '</svg>'
         );
     }
@@ -153,41 +130,29 @@ library ValenftinesDescriptors {
                 '.green{fill:#A4FFCA;}',
                 '.purple{fill:#DAB5FF;}',
                 '.yellow{fill:#FFF6AE;}',
-                '.background{fill:#',
-                backgroundColor(tokenId),
-                ';}',
+                '.background{fill:#FFDBDB;}',
             '</style>'
         );
     }
 
-    function backgroundColor(uint256 tokenId) private pure returns(string memory) {
-        uint i = tokenId % 6;
-        return (i < 1 ? 'FFDBDB' : 
-            ( i < 2 ? 'A2E2FF' : 
-                (i < 3 ? 'E8D1FF' : 
-                    (i < 4 ? 'FFF6AE' : 
-                        (i < 5 ? 'FFD7AF' : 'C8FFDF')))));
-    }
-
     function heartsSVGs(
         uint256 tokenId,
-        address valenftines
+        Valentine memory v
     ) 
         public view returns (bytes memory)
     {
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = Valenftines(valenftines).valentineInfo(tokenId);
-        // bool requited = requitedTokenId != 0;
+        bool requited = v.requitedTokenId != 0;
         return abi.encodePacked(
-            addrHeart(true, tokenId, requitedTokenId != 0, from),
+            addrHeart(true, tokenId, requited, v.from),
 
-            addrHeart(false, tokenId, requitedTokenId != 0, to),
+            addrHeart(false, tokenId, requited, v.to),
 
-            textHeart(1, h1, tokenId, requitedTokenId != 0, to, from),
-            textHeart(2, h2, tokenId, requitedTokenId != 0, from, to),
-            textHeart(3, h3, tokenId, requitedTokenId != 0, address(this), from),
+            textHeart(1, v.h1, tokenId, requited, v.to, v.from),
+            textHeart(2, v.h2, tokenId, requited, v.from, v.to),
+            textHeart(3, v.h3, tokenId, requited, address(this), v.from),
 
-            emptyHeart(true, tokenId, requitedTokenId != 0, to),
-            emptyHeart(false, tokenId, requitedTokenId != 0, from)
+            emptyHeart(true, tokenId, requited, v.to),
+            emptyHeart(false, tokenId, requited, v.from)
         );
     }
 
@@ -215,7 +180,7 @@ library ValenftinesDescriptors {
 
     function textHeart(uint256 index, uint8 heartType, uint256 tokenId, bool requited, address addr1, address addr2) private pure returns (bytes memory) {
         string memory xy = (index < 2 ? '327,62' :
-                                index < 3 ? '102,325' : '340,344');
+                                index < 3 ? '102,325' : '336,348');
         return abi.encodePacked(
             '<g transform="translate(',
             xy,
@@ -266,7 +231,7 @@ library ValenftinesDescriptors {
     }
 
     function heartColorClass(address addr1, address addr2) private pure returns(string memory){
-        uint256 i = numberFromAddresses(addr1, addr2, 100) % 6;
+        uint256 i = numberFromAddresses(addr1, addr2, 6);
         return (i < 1 ? 'pink' : 
             (i < 2 ? 'blue' : 
                 (i < 3 ? 'orange' : 
@@ -275,19 +240,10 @@ library ValenftinesDescriptors {
 
     }
 
-    function isFast(address addr1, address addr2) private pure returns(bool){
-        // flip addresses so possible but rare to be fast and small 
-        return numberFromAddresses(addr2, addr1, 100) < 21;
-    }
-
-    function isSmall(address addr1, address addr2) private pure returns(bool){
-        return numberFromAddresses(addr1, addr2, 100) < 21;
-    }
-
     // gives a number from address where 
     // numberFromAddresses(addr1, addr2, mod) != numberFromAddresses(addr2, addr1, mod)
     function numberFromAddresses(address addr1, address addr2, uint256 mod) private pure returns(uint256) {
-        return ((uint160(addr1) % 201) + (uint160(addr2) % 100)) % mod;
+        return ((uint160(addr1) % type(uint80).max) + (uint160(addr2) % type(uint64).max)) % mod;
     } 
 
     function gm() private pure returns(bytes memory){
