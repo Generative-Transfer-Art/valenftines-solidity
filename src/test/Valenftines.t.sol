@@ -143,11 +143,11 @@ contract ContractTest is DSTest {
     function testTokenURI() public {
         vm.warp(5);
         valenftines.mint{value: 3e16}(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, 1, 2, 3);
-        // emit log_string(valenftines.tokenURI(1));
+        emit log_string(valenftines.tokenURI(1));
 
         vm.prank(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1);
         valenftines.transferFrom(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, address(this), 1);
-        // emit log_string(valenftines.tokenURI(1));
+        emit log_string(valenftines.tokenURI(1));
         // emit log_string(string(valenftines.svgImage(1)));
     }
 }

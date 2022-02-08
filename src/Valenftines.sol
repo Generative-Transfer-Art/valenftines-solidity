@@ -36,7 +36,7 @@ contract Valenftines is ERC721, Ownable {
     uint24 private _nonce;
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
-        ValenftinesDescriptors.tokenURI(id, address(this));
+        return ValenftinesDescriptors.tokenURI(id, address(this));
     }
 
     constructor(
