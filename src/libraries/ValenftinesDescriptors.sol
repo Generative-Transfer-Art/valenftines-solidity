@@ -200,8 +200,28 @@ library ValenftinesDescriptors {
     }
 
     function heartMessageTspans(uint8 heartType) private pure returns(bytes memory){
-        return (heartType < 2 ? gm() :
-                    (heartType < 3 ? toTheMoon() : bestFren()));
+        return (heartType < 2 ? bullishForYou() :
+                (heartType < 3 ? beMine() : 
+                (heartType < 4 ? toTheMoon() : 
+                (heartType < 5 ? coolCat() : 
+                (heartType < 6 ? cutiePie() :
+                (heartType < 7 ? zeroXZeroX() : 
+                (heartType < 8 ? bestFren() : 
+                (heartType < 9 ? bigFan() : 
+                (heartType < 10 ? gm() : 
+                (heartType < 11 ? coinBae() : 
+                (heartType < 12 ? sayIDAO() :
+                (heartType < 13 ? wagmi() : 
+                (heartType < 14 ? myDegen() : 
+                (heartType < 15 ? payMyTaxes() :
+                (heartType < 16 ? upOnly() : 
+                (heartType < 17 ? lilMfer() : 
+                (heartType < 18 ? onboardMe() : 
+                (heartType < 19 ? letsMerge() : 
+                (heartType < 20 ? hodlMe() : 
+                (heartType < 21 ? looksRare() :
+                (heartType < 22 ? wenRing() : 
+                (heartType < 23 ? idMintYou() : simpForYou()))))))))))))))))))))));
     }
 
     function emptyHeart(bool first, uint256 tokenId, bool requited, address account) private view returns (bytes memory) {
