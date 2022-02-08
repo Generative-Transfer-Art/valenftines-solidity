@@ -3,6 +3,7 @@ pragma solidity 0.8.10;
 
 import {ERC721} from "solmate/tokens/ERC721.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {MerkleProof} from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 import {ValenftinesDescriptors} from "src/libraries/ValenftinesDescriptors.sol";
 
@@ -15,72 +16,41 @@ struct Valentine {
     address from;
 }
 
-interface IValenftines {
-    function valentineInfo(uint256 tokenId) external returns (
-        uint8 h1,
-        uint8 h2,
-        uint8 h3,
-        uint24 requitedTokenId,
-        address to,
-        address from
-    );
-
-    function matchOf(uint256 tokenId) external returns (uint256);
-}
-
 /// Reverts
 /// 1 - value less than mint fee
 /// 2 - mint started yet 
 /// 3 - mint ended
-contract Valenftines is ERC721, Ownable, IValenftines {
+/// 4 - GTAP mint ended
+/// 5 - GTAP mint claimed
+/// 6 - invalid proof
+contract Valenftines is ERC721, Ownable {
     uint256 earlymintStartTimestamp; 
     uint256 mintStartTimestamp;
     uint256 mintEndTimestamp;
+    bytes32 public immutable merkleRoot;
     mapping(uint256 => Valentine) public valentineInfo;
     mapping(uint256 => uint256) public matchOf;
     mapping(uint8 => uint8) public mintCost;
+    mapping(address => bool) public gtapEarlyMintClaimed;
 
     uint24 private _nonce;
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
-        ValenftinesDescriptors.tokenURI(id, this);
-        // Valentine storage v = valentineInfo[id];
-        // return string(
-        //         abi.encodePacked(
-        //             'data:application/json;base64,',
-        //                 Base64.encode(
-        //                     bytes(
-        //                         abi.encodePacked(
-        //                             '{"name":"'
-        //                             '#',
-        //                             Strings.toString(id),
-        //                             _tokenName(id),
-        //                             '", "description":"',
-        //                             'Valenftines are on-chain art for friends and lovers. They display the address of the sender and recipient along with messages picked by the minter. When the Valenftine is transferred back to the most recent sender, love is REQUITED and the NFT transforms and clones itself so both parties have a copy.',
-        //                             '", "attributes": [',
-        //                             tokenAttributes(id),
-        //                             ']',
-        //                             ', "image": "'
-        //                             'data:image/svg+xml;base64,',
-        //                             Base64.encode(svgImage(id)),
-        //                             '"}'
-        //                         )
-        //                     )
-        //                 )
-        //         )
-        //     );
+        ValenftinesDescriptors.tokenURI(id, address(this));
     }
 
     constructor(
         uint256 _earlymintStartTimestamp, 
         uint256 _mintStartTimestamp, 
-        uint256 _mintEndTimestamp
+        uint256 _mintEndTimestamp,
+        bytes32 _merkleRoot
     ) 
         ERC721("Valenftines", "GTAP3")
     {
         earlymintStartTimestamp = _earlymintStartTimestamp;
         mintStartTimestamp = _mintStartTimestamp;
         mintEndTimestamp = _mintEndTimestamp;
+        merkleRoot = _merkleRoot;
     }
 
     // Mint
@@ -89,6 +59,26 @@ contract Valenftines is ERC721, Ownable, IValenftines {
         require(heartMintCostWei(h1) + heartMintCostWei(h2) + heartMintCostWei(h3) <= msg.value, '1');
         require(block.timestamp > mintStartTimestamp, '2');
         require(block.timestamp < mintEndTimestamp, '3');
+        
+        id = ++_nonce;
+        Valentine storage v = valentineInfo[id];
+        v.from = msg.sender;
+        v.to = to;
+        v.h1 = h1;
+        v.h2 = h2;
+        v.h3 = h3;
+        _safeMint(to, id);
+    }
+
+    function gtapMint(address to, uint8 h1, uint8 h2, uint8 h3, bytes32[] calldata merkleProof) payable external returns(uint256 id) {
+        require((((heartMintCostWei(h1) + heartMintCostWei(h2) + heartMintCostWei(h3)) * 50) / 100)  <= msg.value, '1');
+        require(block.timestamp < mintStartTimestamp, '4');
+        require(!gtapEarlyMintClaimed[msg.sender], '5');
+
+        bytes32 node = keccak256(abi.encodePacked(msg.sender));
+        require(MerkleProof.verify(merkleProof, merkleRoot, node), '6');
+
+        gtapEarlyMintClaimed[msg.sender] = true;
         
         id = ++_nonce;
         Valentine storage v = valentineInfo[id];
@@ -153,8 +143,4 @@ contract Valenftines is ERC721, Ownable, IValenftines {
             }
         }
     }
-
-    /// Token metadata 
-
-    
 }

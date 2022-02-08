@@ -11,13 +11,21 @@ contract ContractTest is DSTest {
     uint256 earlymintStartTimestamp = 2; 
     uint256 mintStartTimestamp = 4;
     uint256 mintEndTimestamp = 6;
+    bytes32 merkleRoot = 0x070e8db97b197cc0e4a1790c5e6c3667bab32d733db7f815fbe84f5824c7168d;
+    address gtapHolder = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    bytes32[] proofArray;
+    bytes32 proof = 0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0;
+
 
     function setUp() public {
         valenftines = new Valenftines(
             earlymintStartTimestamp,
             mintStartTimestamp,
-            mintEndTimestamp
+            mintEndTimestamp,
+            merkleRoot
         );
+        proofArray.push(proof);
+        vm.deal(gtapHolder, 1e20);
     }
 
     function testMint() public {
@@ -25,6 +33,18 @@ contract ContractTest is DSTest {
         vm.warp(5);
         valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
         assertEq(valenftines.ownerOf(1), mintTo);
+    }
+
+    function testMintTooEarly() public {
+        vm.warp(mintStartTimestamp);
+        vm.expectRevert("2");
+        valenftines.mint{value: 3e16}(address(1), 1, 2, 3);
+    }
+
+    function testMintTooLate() public {
+        vm.warp(mintEndTimestamp);
+        vm.expectRevert("3");
+        valenftines.mint{value: 3e16}(address(1), 1, 2, 3);
     }
 
     function testMintValentineInfo() public {
@@ -39,6 +59,45 @@ contract ContractTest is DSTest {
         assertEq(h1, 1);
         assertEq(h2, 2);
         assertEq(h3, 3);
+    }
+
+    function testGtapMint() public {
+        address mintTo = address(1);
+        vm.warp(mintStartTimestamp - 1);
+        vm.prank(gtapHolder);
+        valenftines.gtapMint{value: 15e15}(mintTo, 1, 2, 3, proofArray);
+        assertEq(valenftines.ownerOf(1), mintTo);
+
+        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(1);
+        assertEq(from, gtapHolder);
+        assertEq(to, mintTo);
+        assertEq(requitedTokenId, 0);
+        assertEq(h1, 1);
+        assertEq(h2, 2);
+        assertEq(h3, 3);
+    }
+
+    function testGtapFailSecondMint() public {
+        vm.warp(mintStartTimestamp - 1);
+        vm.startPrank(gtapHolder);
+        valenftines.gtapMint{value: 15e15}(address(1), 1, 2, 3, proofArray);
+        vm.expectRevert("5");
+        valenftines.gtapMint{value: 15e15}(address(1), 1, 2, 3, proofArray);
+        vm.stopPrank();
+    }
+
+    function testGtapFailTooLate() public {
+        vm.warp(mintStartTimestamp);
+        vm.prank(gtapHolder);
+        vm.expectRevert("4");
+        valenftines.gtapMint{value: 15e15}(address(1), 1, 2, 3, proofArray);
+    }
+
+    function testGtapFailFeeTooLow() public {
+        vm.warp(mintStartTimestamp);
+        vm.prank(gtapHolder);
+        vm.expectRevert("1");
+        valenftines.gtapMint{value: 15e15 - 1}(address(1), 1, 2, 3, proofArray);
     }
 
     function testRequitedTransfer() public {

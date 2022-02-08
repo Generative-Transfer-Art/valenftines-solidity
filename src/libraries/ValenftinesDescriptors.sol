@@ -9,8 +9,8 @@ import {HexStrings} from "./HexStrings.sol";
 import {Valenftines, Valentine} from 'src/Valenftines.sol';
 
 library ValenftinesDescriptors {
-    function tokenURI(uint256 id, Valenftines valenftines) public view returns (string memory) {
-        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = valenftines.valentineInfo(id);
+    function tokenURI(uint256 id, address valenftines) public view returns (string memory) {
+        (uint8 h1, uint8 h2, uint8 h3, uint24 requitedTokenId, address to, address from) = Valenftines(valenftines).valentineInfo(id);
         return string(
                 abi.encodePacked(
                     'data:application/json;base64,',
@@ -37,8 +37,8 @@ library ValenftinesDescriptors {
             );
     }
 
-    function _tokenName(uint256 tokenId, uint24 requitedTokenId, Valenftines valenftines) private view returns(string memory){
-        uint256 copy = valenftines.matchOf(tokenId);
+    function _tokenName(uint256 tokenId, uint24 requitedTokenId, address valenftines) private view returns(string memory){
+        uint256 copy = Valenftines(valenftines).matchOf(tokenId);
         return requitedTokenId == 0 ?
                 '' : 
                 string(
@@ -147,7 +147,7 @@ library ValenftinesDescriptors {
                 'repeatCount="indefinite"',
             '/>',
            
-            heartsSVGs(tokenId, h1, h2, h3, requitedTokenId, to, from),
+            heartsSVGs(tokenId, h1, h2, h3, requitedTokenId != 0, to, from),
             '</svg>'
         );
     }
@@ -157,13 +157,13 @@ library ValenftinesDescriptors {
         uint8 h1,
         uint8 h2,
         uint8 h3,
-        uint24 requitedTokenId,
+        bool requited,
         address to,
         address from
     ) 
         private view returns (bytes memory)
     {
-        bool requited = requitedTokenId != 0;
+        // bool requited = requitedTokenId != 0;
         return abi.encodePacked(
             addrHeart(true, tokenId, requited, from),
 
@@ -178,7 +178,9 @@ library ValenftinesDescriptors {
         );
     }
 
-    function addrHeart(bool first, uint256 tokenId, bool requited, address account) public pure returns (bytes memory) {
+    // function textHearts()
+
+    function addrHeart(bool first, uint256 tokenId, bool requited, address account) private pure returns (bytes memory) {
         string memory xy = first ? '93,96' : '236,209';
         return abi.encodePacked(
             '<g transform="translate(',

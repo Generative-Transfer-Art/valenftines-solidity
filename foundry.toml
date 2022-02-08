@@ -4,5 +4,7 @@ out = 'out'
 libs = ['lib']
 remappings = ['ds-test/=lib/ds-test/src/']
 optimizer = false
+libraries=['src/libraries/ValenftinesDescriptors.sol:ValenftinesDescriptors:0xc9aba1da30dbf88253c7902820c25d99250f1f54', 'src/libraries/HexStrings.sol:HexStrings:0x6db35842a28fb046f135147ca9c7da51b91f55c1']
+
 
 # See more config options https://github.com/gakonst/foundry/tree/master/config
