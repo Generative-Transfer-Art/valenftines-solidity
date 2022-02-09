@@ -251,7 +251,7 @@ library ValenftinesDescriptors {
     }
 
     function heartColorClass(address addr1, address addr2) private pure returns(string memory){
-        uint256 i = numberFromAddresses(addr1, addr2, 6);
+        uint256 i = numberFromAddresses(addr1, addr2, 100) % 6;
         return (i < 1 ? 'pink' : 
             (i < 2 ? 'blue' : 
                 (i < 3 ? 'orange' : 
@@ -263,7 +263,7 @@ library ValenftinesDescriptors {
     // gives a number from address where 
     // numberFromAddresses(addr1, addr2, mod) != numberFromAddresses(addr2, addr1, mod)
     function numberFromAddresses(address addr1, address addr2, uint256 mod) private pure returns(uint256) {
-        return ((uint160(addr1) % type(uint80).max) + (uint160(addr2) % type(uint64).max)) % mod;
+        return ((uint160(addr1) % 201) + (uint160(addr2) % 100)) % mod;
     } 
 
     function gm() private pure returns(bytes memory){
