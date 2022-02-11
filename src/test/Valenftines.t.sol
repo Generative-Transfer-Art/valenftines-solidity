@@ -2,8 +2,12 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
-import "src/Valenftines.sol";
+import {Valenftines} from "src/Valenftines.sol";
 import "forge-std/Vm.sol";
+import "src/libraries/ValenftinesDescriptors.sol";
+import {ERC721Enumerable} from "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+
+import 'src/libraries/HexStrings.sol';
 
 contract ContractTest is DSTest {
     Vm vm = Vm(HEVM_ADDRESS);
@@ -15,7 +19,6 @@ contract ContractTest is DSTest {
     address gtapHolder = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     bytes32[] proofArray;
     bytes32 proof = 0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0;
-
 
     function setUp() public {
         valenftines = new Valenftines(
@@ -30,7 +33,7 @@ contract ContractTest is DSTest {
 
     function testMint() public {
         address mintTo = address(1);
-        vm.warp(5);
+        vm.warp(mintStartTimestamp + 1);
         valenftines.mint{value: 3e16}(mintTo, 1, 2, 3);
         assertEq(valenftines.ownerOf(1), mintTo);
     }
@@ -45,6 +48,18 @@ contract ContractTest is DSTest {
         vm.warp(mintEndTimestamp);
         vm.expectRevert("3");
         valenftines.mint{value: 3e16}(address(1), 1, 2, 3);
+    }
+
+    function testMintInvalidHeartType() public {
+        vm.warp(mintStartTimestamp + 1);
+        vm.expectRevert("7");
+        valenftines.mint{value: 3e16}(address(1), 0, 2, 3);
+    }
+
+    function testMintInvalidHeartType2() public {
+        vm.warp(mintStartTimestamp + 1);
+        vm.expectRevert("7");
+        valenftines.mint{value: 3e16}(address(1), 1, 24, 3);
     }
 
     function testMintValentineInfo() public {
@@ -143,12 +158,12 @@ contract ContractTest is DSTest {
     function testTokenURI() public {
         vm.warp(5);
         valenftines.mint{value: 3e16}(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, 1, 2, 3);
-        emit log_string(valenftines.tokenURI(1));
+        // emit log_string(valenftines.tokenURI(1));
 
         vm.prank(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1);
         valenftines.transferFrom(0x8aDc376F33Fd467FdF3293Df4eAe7De6Fd5CcAf1, address(this), 1);
-        emit log_string(valenftines.tokenURI(1));
-        emit log_string(valenftines.tokenURI(2));
-        // emit log_string(string(valenftines.svgImage(1)));
+        // emit log_string(valenftines.tokenURI(1));
+        // emit log_string(valenftines.tokenURI(2));
     }
+
 }

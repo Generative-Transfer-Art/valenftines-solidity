@@ -23,6 +23,7 @@ struct Valentine {
 /// 4 - GTAP mint ended
 /// 5 - GTAP mint claimed
 /// 6 - invalid proof
+/// 7 - inavlid heart type
 contract Valenftines is ERC721, Ownable {
     uint256 earlymintStartTimestamp; 
     uint256 mintStartTimestamp;
@@ -30,7 +31,6 @@ contract Valenftines is ERC721, Ownable {
     bytes32 public immutable merkleRoot;
     mapping(uint256 => Valentine) public _valentineInfo;
     mapping(uint256 => uint256) public matchOf;
-    mapping(uint8 => uint8) public mintCost;
     mapping(address => bool) public gtapEarlyMintClaimed;
 
     uint24 private _nonce;
@@ -95,6 +95,7 @@ contract Valenftines is ERC721, Ownable {
     }
 
     function heartMintCostWei(uint8 heartType) public pure returns(uint256) {
+        require(heartType > 0 && heartType < 24, '7');
         return (heartType < 11 ? 1e16 : 
             (heartType < 18 ? 2e16 : 
                 (heartType < 23 ? 1e17 : 1e18)));
@@ -146,5 +147,10 @@ contract Valenftines is ERC721, Ownable {
                 v.to = to;
             }
         }
+    }
+
+    function payOwner(address to, uint256 amount) public onlyOwner() {
+        require(amount <= address(this).balance, "amount too high");
+        payable(to).transfer(amount);
     }
 }

@@ -29,7 +29,7 @@ library ValenftinesDescriptors {
                                     ']',
                                     ', "image": "'
                                     'data:image/svg+xml;base64,',
-                                    Base64.encode(copy > 0 ? svgImage(copy, Valenftines(valenftines).valentineInfo(copy)) : svgImage(id, v)),
+                                    Base64.encode(copy > 0 ? svgImage(true, copy, Valenftines(valenftines).valentineInfo(copy)) : svgImage(false, id, v)),
                                     '"}'
                                 )
                             )
@@ -69,6 +69,7 @@ library ValenftinesDescriptors {
     /// TOKEN ART 
 
     function svgImage(
+        bool isCopy,
         uint256 tokenId, 
         Valentine memory v
     ) 
@@ -84,9 +85,13 @@ library ValenftinesDescriptors {
                 '</g>',
                 '<radialGradient id="rainbow" cx="58%" cy="49%" fr="0%" r="70%" spreadMethod="repeat">',
                 '<stop offset="0%" style="stop-color:#ffb9b9" />',
-                '<stop offset="30%" style="stop-color:#fff7ad" />',
+                '<stop offset="30%" style="stop-color:#',
+                isCopy ? 'cfbcff' : 'fff7ad',
+                '" />',
                 '<stop offset="50%" style="stop-color:#97fff3" />',
-                '<stop offset="80%" style="stop-color:#cfbcff" />',
+                '<stop offset="80%" style="stop-color:#',
+                isCopy ? 'fff7ad' : 'cfbcff',
+                '" />',
                 '<stop offset="100%" style="stop-color:#ffb9b9" />',
                 '</radialGradient>',
             '</defs>',
