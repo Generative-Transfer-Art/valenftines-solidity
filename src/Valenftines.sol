@@ -115,15 +115,6 @@ contract Valenftines is ERC721, Ownable {
     function safeTransferFrom(
         address from,
         address to,
-        uint256 id
-    ) public virtual override {
-        _beforeTransfer(from, to, id);
-        super.safeTransferFrom(from, to, id);
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
         uint256 id,
         bytes memory data
     ) public virtual override {
