@@ -24,6 +24,7 @@ struct Valentine {
 /// 5 - GTAP mint claimed
 /// 6 - invalid proof
 /// 7 - inavlid heart type
+/// 8 - token does not exist
 contract Valenftines is ERC721, Ownable {
     uint256 public immutable mintStartTimestamp;
     uint256 public immutable mintEndTimestamp;
