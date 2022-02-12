@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.10;
 
 import {ERC721} from "solmate/tokens/ERC721.sol";
@@ -25,39 +25,54 @@ struct Valentine {
 /// 6 - invalid proof
 /// 7 - inavlid heart type
 contract Valenftines is ERC721, Ownable {
-    uint256 earlymintStartTimestamp; 
-    uint256 mintStartTimestamp;
-    uint256 mintEndTimestamp;
+    uint256 public immutable mintStartTimestamp;
+    uint256 public immutable mintEndTimestamp;
     bytes32 public immutable merkleRoot;
     mapping(uint256 => Valentine) public _valentineInfo;
     mapping(uint256 => uint256) public matchOf;
     mapping(address => bool) public gtapEarlyMintClaimed;
 
-    uint24 private _nonce;
+    uint24 public _nonce;
 
     function valentineInfo(uint256 tokenId) view public returns(Valentine memory){
+        require(tokenId <= _nonce, '8');
         return _valentineInfo[tokenId];
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
+        require(id <= _nonce, '8');
         return ValenftinesDescriptors.tokenURI(id, address(this));
     }
 
+    // forge doesn't like this, being worked on
+    //
+    // function svgImage(uint256 id) external view returns (bytes memory) {
+    //     require(id <= _nonce, '8');
+    //     uint256 copy = matchOf[id];
+    //     if(copy > 0){
+    //         Valentine memory vc = _valentineInfo[copy];
+    //         return ValenftinesDescriptors.svgImage(true, copy, vc);
+    //     } else {
+    //         Valentine memory v = _valentineInfo[id];
+    //         return ValenftinesDescriptors.svgImage(false, id, v);
+    //     }
+    // }
+
     constructor(
-        uint256 _earlymintStartTimestamp, 
+        address _owner,
         uint256 _mintStartTimestamp, 
         uint256 _mintEndTimestamp,
         bytes32 _merkleRoot
     ) 
         ERC721("Valenftines", "GTAP3")
     {
-        earlymintStartTimestamp = _earlymintStartTimestamp;
+        transferOwnership(_owner);
         mintStartTimestamp = _mintStartTimestamp;
         mintEndTimestamp = _mintEndTimestamp;
         merkleRoot = _merkleRoot;
     }
 
-    // Mint
+    /// Mint
 
     function mint(address to, uint8 h1, uint8 h2, uint8 h3) payable external returns(uint256 id) {
         require(heartMintCostWei(h1) + heartMintCostWei(h2) + heartMintCostWei(h3) <= msg.value, '1');
@@ -139,9 +154,10 @@ contract Valenftines is ERC721, Ownable {
         Valentine storage v = _valentineInfo[id];
         if (v.requitedTokenId == 0 && matchOf[id] == 0){
             if(to == v.from){
-                _mint(from, ++_nonce);
-                v.requitedTokenId = _nonce;
-                matchOf[_nonce] = id;
+                uint24 nId = ++_nonce;
+                _mint(from, nId);
+                v.requitedTokenId = nId;
+                matchOf[nId] = id;
             } else {
                 v.from = from;
                 v.to = to;
@@ -149,7 +165,7 @@ contract Valenftines is ERC721, Ownable {
         }
     }
 
-    function payOwner(address to, uint256 amount) public onlyOwner() {
+    function payOwner(address to, uint256 amount) public onlyOwner {
         require(amount <= address(this).balance, "amount too high");
         payable(to).transfer(amount);
     }

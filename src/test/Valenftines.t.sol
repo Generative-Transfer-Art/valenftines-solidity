@@ -12,9 +12,8 @@ import 'src/libraries/HexStrings.sol';
 contract ContractTest is DSTest {
     Vm vm = Vm(HEVM_ADDRESS);
     Valenftines valenftines;
-    uint256 earlymintStartTimestamp = 2; 
-    uint256 mintStartTimestamp = 4;
-    uint256 mintEndTimestamp = 6;
+    uint32 mintStartTimestamp = 4;
+    uint32 mintEndTimestamp = 6;
     bytes32 merkleRoot = 0x070e8db97b197cc0e4a1790c5e6c3667bab32d733db7f815fbe84f5824c7168d;
     address gtapHolder = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     bytes32[] proofArray;
@@ -22,7 +21,7 @@ contract ContractTest is DSTest {
 
     function setUp() public {
         valenftines = new Valenftines(
-            earlymintStartTimestamp,
+            address(this),
             mintStartTimestamp,
             mintEndTimestamp,
             merkleRoot
